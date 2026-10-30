@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ButtonPrimary } from "./button-primary";
 import { CardHeader } from "./card-header";
 import { Chip } from "./chip";
@@ -9,12 +9,17 @@ import { useSavedMemos } from "@/lib/memo-store";
 import { CATEGORIES, PINNED_MEMOS, RECENT_MEMOS, type Memo } from "@/lib/memos";
 
 const ALL = "전체";
-const MEMO_COUNT = 128;
 
 // 위에서부터 차례로 떠오르게 하는 순서
 const order = (i: number) => ({ "--i": i }) as React.CSSProperties;
 
+// 오늘 날짜 (예: "10월 30일 금요일"). 빌드 때 굳지 않도록 브라우저에서만 계산한다.
+const today = () =>
+  new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "long" });
+const noSubscribe = () => () => {};
+
 export function MemoHome() {
+  const dateText = useSyncExternalStore(noSubscribe, today, () => "");
   const [category, setCategory] = useState(ALL);
   const saved = useSavedMemos();
   const visible = (memos: Memo[]) =>
@@ -23,7 +28,9 @@ export function MemoHome() {
   // 고친 샘플 메모는 제자리에서 저장본으로 바뀌고, 새로 쓴 메모는 최근 메모 맨 위에 붙는다.
   const savedById = new Map(saved.map((memo) => [memo.id, memo]));
   const sampleIds = new Set([...PINNED_MEMOS, ...RECENT_MEMOS].map((m) => m.id));
-  const applySaved = (memos: Memo[]) => memos.map((m) => savedById.get(m.id) ?? m);
+  // 분류와 상관없이 지금 있는 메모 전체 개수 (샘플 + 새로 쓴 메모)
+  const memoCount = sampleIds.size + saved.filter((memo) => !sampleIds.has(memo.id)).length;
+  const applySaved =(memos: Memo[]) => memos.map((m) => savedById.get(m.id) ?? m);
   const pinned = visible(applySaved(PINNED_MEMOS));
   const recent = visible([
     ...saved.filter((memo) => !sampleIds.has(memo.id)),
@@ -35,17 +42,17 @@ export function MemoHome() {
       <main className="flex flex-1 flex-col gap-space-16">
         <header className="flex flex-col gap-space-8 px-space-8">
           <p className="rise text-caption-md text-text-muted" style={order(0)}>
-            10월 30일 금요일
+            {dateText || " "}
           </p>
           <h1 className="rise text-heading-xl text-text-primary" style={order(1)}>
             오늘까지 메모를
             <br />
             <span className="text-primary">
-              <span className="sr-only">{MEMO_COUNT}</span>
+              <span className="sr-only">{memoCount}</span>
               <span
                 aria-hidden
                 className="count-up"
-                style={{ "--to": MEMO_COUNT } as React.CSSProperties}
+                style={{ "--to": memoCount } as React.CSSProperties}
               />
               개
             </span>{" "}
