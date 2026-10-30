@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>메모리 카드 게임</title>
+<style>
+  :root {
+    --accent: #e62429;
+    --accent-dark: #c41a1f;
+    --ink: #ffffff;
+    --muted: #b5adad;
+    --bg: #0d0809;
+    --card: #1a1213;
+    --line: #2e2223;
+    --display: Impact, "Arial Narrow", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: var(--ink);
+    background: radial-gradient(ellipse at 50% 0%, rgba(230,36,41,.25) 0%, transparent 60%), var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 44px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .sub { color: var(--muted); margin-bottom: 28px; }
+
+  .bar { display: flex; align-items: center; gap: 28px; margin-bottom: 28px; }
+  .stat { font-family: var(--display); font-size: 22px; letter-spacing: .06em; }
+  .stat span { color: var(--accent); }
+
+  .btn {
+    border: 0;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--display);
+    font-size: 16px;
+    letter-spacing: .06em;
+    padding: 12px 32px;
+    clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+    transition: background .2s;
+  }
+  .btn:hover { background: var(--accent-dark); }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    width: min(100%, 480px);
+  }
+  .card {
+    aspect-ratio: 1;
+    perspective: 600px;
+    cursor: pointer;
+    border: 0;
+    background: none;
+  }
+  .inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .4s;
+  }
+  .card.flipped .inner, .card.matched .inner { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    border-radius: 12px;
+  }
+  .front {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--accent);
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--accent);
+  }
+  .card:hover:not(.flipped):not(.matched) .front { border-color: var(--accent); }
+  .back {
+    background: #2a1416;
+    border: 2px solid var(--accent);
+    font-size: 44px;
+    transform: rotateY(180deg);
+  }
+  .card.matched .back { background: #3a1013; box-shadow: 0 0 18px rgba(230,36,41,.5); }
+
+  .win {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+  .win.show { display: flex; }
+  .win div { background: var(--card); border-top: 4px solid var(--accent); padding: 48px 56px; }
+  .win h2 { font-family: var(--display); font-weight: 400; font-size: 40px; letter-spacing: .04em; margin-bottom: 12px; }
+  .win p { color: var(--muted); margin-bottom: 28px; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 32px; }
+    .board { gap: 8px; }
+    .back { font-size: 32px; }
+    .bar { gap: 16px; flex-wrap: wrap; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Memory Game</h1>
+<p class="sub">같은 그림 두 장을 찾아 모두 맞춰보세요.</p>
+
+<div class="bar">
+  <div class="stat">시도 <span id="moves">0</span></div>
+  <div class="stat">시간 <span id="time">0</span>초</div>
+  <button class="btn" id="restart">다시 시작</button>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="win" id="win">
+  <div>
+    <h2>🎉 클리어!</h2>
+    <p id="result"></p>
+    <button class="btn" id="again">한 번 더</button>
+  </div>
+</div>
+
+<script>
+  const EMOJIS = ['🍎', '🚀', '🐱', '⚽', '🎸', '🌈', '🍕', '👾'];
+  const board = document.getElementById('board');
+  const movesEl = document.getElementById('moves');
+  const timeEl = document.getElementById('time');
+  const winEl = document.getElementById('win');
+
+  let first = null, lock = false, moves = 0, matched = 0;
+  let timer = null, seconds = 0;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function start() {
+    clearInterval(timer);
+    timer = null;
+    first = null; lock = false; moves = 0; matched = 0; seconds = 0;
+    movesEl.textContent = 0;
+    timeEl.textContent = 0;
+    winEl.classList.remove('show');
+    board.innerHTML = '';
+    shuffle([...EMOJIS, ...EMOJIS]).forEach(emoji => {
+      const card = document.createElement('button');
+      card.className = 'card';
+      card.dataset.emoji = emoji;
+      card.innerHTML = '<div class="inner"><div class="face front">?</div><div class="face back">' + emoji + '</div></div>';
+      card.addEventListener('click', () => flip(card));
+      board.appendChild(card);
+    });
+  }
+
+  function flip(card) {
+    if (lock || card === first || card.classList.contains('matched')) return;
+    if (!timer) timer = setInterval(() => { timeEl.textContent = ++seconds; }, 1000);
+    card.classList.add('flipped');
+    if (!first) { first = card; return; }
+
+    movesEl.textContent = ++moves;
+    const second = card;
+    if (first.dataset.emoji === second.dataset.emoji) {
+      first.classList.replace('flipped', 'matched');
+      second.classList.replace('flipped', 'matched');
+      first = null;
+      if (++matched === EMOJIS.length) finish();
+    } else {
+      lock = true;
+      setTimeout(() => {
+        first.classList.remove('flipped');
+        second.classList.remove('flipped');
+        first = null;
+        lock = false;
+      }, 800);
+    }
+  }
+
+  function finish() {
+    clearInterval(timer);
+    timer = null;
+    document.getElementById('result').textContent = '시도 ' + moves + '회 · ' + seconds + '초';
+    setTimeout(() => winEl.classList.add('show'), 500);
+  }
+
+  document.getElementById('restart').addEventListener('click', start);
+  document.getElementById('again').addEventListener('click', start);
+  start();
+</script>
+</body>
+</html>

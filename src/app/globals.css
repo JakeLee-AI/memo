@@ -1,0 +1,307 @@
+@import "tailwindcss";
+
+/*
+ * 디자인 토큰 — CLAUDE.md의 표와 이름을 맞춘다.
+ * 토큰에 없는 색·모서리·글자 크기는 쓸 수 없도록 기본값을 비운다.
+ *
+ * 색:       bg-surface-card, text-text-primary, border-border-default, bg-label-blue-soft
+ * 간격:     p-space-16, gap-space-8, mt-space-24
+ * 모서리:   rounded-md, rounded-full
+ * 텍스트:   text-title-lg, text-body-md, text-button-md
+ */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --text-*: initial;
+
+  /* 색 (Light) */
+  --color-primary: #3182f6;
+  --color-surface-page: #f2f4f6;
+  --color-surface-card: #ffffff;
+  --color-text-primary: #191f28;
+  --color-text-secondary: #4e5968;
+  --color-text-muted: #8b95a1;
+  --color-text-on-primary: #ffffff;
+  --color-border-default: #e5e8eb;
+  --color-label-blue: #3182f6;
+  --color-label-blue-soft: #e8f3ff;
+  --color-label-green: #12a150;
+  --color-label-green-soft: #e3f8ec;
+  --color-label-orange: #f76808;
+  --color-label-orange-soft: #fff1e5;
+  --color-label-pink: #e5397a;
+  --color-label-pink-soft: #ffeaf1;
+
+  /* 간격 */
+  --spacing-space-4: 4px;
+  --spacing-space-8: 8px;
+  --spacing-space-12: 12px;
+  --spacing-space-16: 16px;
+  --spacing-space-20: 20px;
+  --spacing-space-24: 24px;
+  --spacing-space-34: 34px;
+  --spacing-space-48: 48px;
+  --spacing-space-64: 64px;
+
+  /* 모서리 */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* 글꼴 */
+  --font-sans: var(--font-noto-sans-kr), sans-serif;
+
+  /* 모션 곡선 — One UI의 부드러운 sine 곡선과 탄성 있는 복귀 */
+  --ease-oneui: cubic-bezier(0.33, 0, 0.67, 1);
+  --ease-oneui-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-oneui-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 텍스트 스타일 */
+  --text-heading-xl: 28px;
+  --text-heading-xl--line-height: 38px;
+  --text-heading-xl--letter-spacing: -0.8px;
+  --text-heading-xl--font-weight: 700;
+
+  --text-heading-lg: 26px;
+  --text-heading-lg--line-height: 36px;
+  --text-heading-lg--letter-spacing: -0.8px;
+  --text-heading-lg--font-weight: 700;
+
+  --text-title-lg: 20px;
+  --text-title-lg--line-height: 28px;
+  --text-title-lg--letter-spacing: -0.4px;
+  --text-title-lg--font-weight: 700;
+
+  --text-title-md: 17px;
+  --text-title-md--line-height: 24px;
+  --text-title-md--letter-spacing: -0.3px;
+  --text-title-md--font-weight: 700;
+
+  --text-label-md: 15px;
+  --text-label-md--line-height: 22px;
+  --text-label-md--letter-spacing: -0.2px;
+  --text-label-md--font-weight: 700;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 28px;
+  --text-body-md--letter-spacing: -0.2px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--letter-spacing: -0.1px;
+  --text-body-sm--font-weight: 400;
+
+  --text-caption-md: 15px;
+  --text-caption-md--line-height: 22px;
+  --text-caption-md--letter-spacing: -0.2px;
+  --text-caption-md--font-weight: 500;
+
+  --text-caption-sm: 13px;
+  --text-caption-sm--line-height: 18px;
+  --text-caption-sm--letter-spacing: 0px;
+  --text-caption-sm--font-weight: 500;
+
+  --text-button-md: 17px;
+  --text-button-md--line-height: 24px;
+  --text-button-md--letter-spacing: -0.2px;
+  --text-button-md--font-weight: 700;
+}
+
+/* 색 (Dark) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #4d94ff;
+    --color-surface-page: #101014;
+    --color-surface-card: #1c1c22;
+    --color-text-primary: #f1f3f5;
+    --color-text-secondary: #b3bac2;
+    --color-text-muted: #6e7783;
+    --color-text-on-primary: #ffffff;
+    --color-border-default: #2a2a33;
+    --color-label-blue: #6aa6ff;
+    --color-label-blue-soft: #1d2a40;
+    --color-label-green: #3ccb7f;
+    --color-label-green-soft: #17302a;
+    --color-label-orange: #ff9446;
+    --color-label-orange-soft: #3a2817;
+    --color-label-pink: #ff6fa2;
+    --color-label-pink-soft: #3b1d2a;
+  }
+}
+
+body {
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  word-break: keep-all;
+}
+
+/*
+ * 모션 — 삼성 One UI 스타일
+ * 누르면 살짝 줄었다가 탄성 있게 돌아오고, 화면은 좌우로 부드럽게 밀려 들어온다.
+ * (곡선은 위 @theme 의 --ease-oneui*)
+ */
+@property --count {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes count-up {
+  from {
+    --count: 0;
+  }
+  to {
+    --count: var(--to);
+  }
+}
+
+@keyframes oneui-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes oneui-slide {
+  from {
+    translate: var(--slide-offset) 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes oneui-slide-y {
+  from {
+    translate: 0 var(--slide-offset);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* 화면이 열릴 때 위에서부터 차례로 떠오른다. 순서는 style의 --i. */
+.rise {
+  animation: rise 520ms var(--ease-oneui-out) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* 누름 피드백 — 줄어들 때는 빠르게, 돌아올 때는 탄성 있게 */
+.press {
+  transition:
+    transform 360ms var(--ease-oneui-spring),
+    background-color 240ms var(--ease-oneui),
+    color 240ms var(--ease-oneui);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.press:not(:disabled):active {
+  transform: scale(var(--press-scale, 0.95));
+  transition-duration: 120ms, 240ms, 240ms;
+  transition-timing-function: var(--ease-oneui);
+}
+
+/* 고른 칩, 막 켜진 저장 버튼은 한 번 통통 튄다 */
+.chip[aria-pressed="true"],
+button.pop-enabled:not(:disabled) {
+  animation: pop 420ms var(--ease-oneui-spring);
+}
+
+/* 숫자가 0에서 올라간다 (--to가 목표값) */
+.count-up {
+  counter-reset: count var(--count);
+  animation: count-up 1200ms var(--ease-oneui-out) 350ms both;
+  font-variant-numeric: tabular-nums;
+}
+.count-up::before {
+  content: counter(count);
+}
+
+/* 화면 전환 */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    180ms var(--ease-oneui) both oneui-fade reverse,
+    420ms var(--ease-oneui) both oneui-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    260ms var(--ease-oneui-out) 140ms both oneui-fade,
+    460ms var(--ease-oneui-out) both oneui-slide;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    180ms var(--ease-oneui) both oneui-fade reverse,
+    420ms var(--ease-oneui) both oneui-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    260ms var(--ease-oneui-out) 140ms both oneui-fade,
+    460ms var(--ease-oneui-out) both oneui-slide;
+}
+
+/* 목록 줄이 상세 카드로 이어진다 */
+::view-transition-group(.morph) {
+  animation-duration: 480ms;
+  animation-timing-function: var(--ease-oneui-out);
+}
+
+::view-transition-new(.slide-up) {
+  --slide-offset: 16px;
+  animation:
+    260ms var(--ease-oneui-out) both oneui-fade,
+    460ms var(--ease-oneui-out) both oneui-slide-y;
+}
+
+/* 움직임 줄이기 설정을 따른다 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
